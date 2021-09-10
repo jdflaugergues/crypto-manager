@@ -1,0 +1,6 @@
+log:
+  name: crypto-manager
+  level: debug
+batchIntervalSeconds: 30
+crypto:
+  threshold: 0.10

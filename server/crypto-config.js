@@ -1,0 +1,18 @@
+module.exports = {
+  SOL: { min: 115, max: 176 },
+  BNT: { min: 3.2, max: 4 },
+  OXT: { min: 0.28, max: 0.40 },
+  UMA: { min: 8.60, max: 12 },
+  XLM: { min: 60, max: 165 },
+  NU: { min: 60, max: 165 },
+  ETH: { min: 60, max: 165 },
+  LTC: { min: 60, max: 165 },
+  ADA: { min: 60, max: 165 },
+  BCH: { min: 60, max: 165 },
+  BTC: { min: 60, max: 165 },
+  XRP: { min: 60, max: 165 },
+  GRT: { min: 60, max: 165 },
+  DOGE: { min: 60, max: 165 },
+  '1INCH': { min: 60, max: 165 },
+  ATOM: { min: 60, max: 165 },
+}
