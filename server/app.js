@@ -1,45 +1,49 @@
-const bunyan = require('bunyan')
+const Koa = require('koa')
+const router = require('koa-router')()
+const serve = require('koa-static')
+const path = require('path')
 const config = require('config')
+const mongoose = require('mongoose')
+const { historyApiFallback } = require('koa2-connect-history-api-fallback')
 
-const cryptoService = require('./crypto.service')
-const emailService = require('./email.service')
-const cryptoConfig = require('./crypto-config')
+const api = require('./api')
+const { error, requestId, logging, responseTime, transmittedHeaders } = require('./middleware')
+const baseLogger = require('./lib/base-logger')
 
-const log = bunyan.createLogger(config.log)
+const logger = baseLogger(config.log)
+const app = new Koa()
 
-const handleCoin = (cryptocurrencySymbol, price) => {
-  const coinConfig = cryptoConfig[cryptocurrencySymbol]
-  if (coinConfig) {
-    const thresholdMax = coinConfig.max - (coinConfig.max - coinConfig.min) * config.crypto.threshold
-    const thresholdMin = coinConfig.min + (coinConfig.max - coinConfig.min) * config.crypto.threshold
+router.use(config.mountPoint, api.routes())
 
-    if (coinConfig.max < price) {
-      coinConfig.max = price
-    }
-    if (coinConfig.min > price) {
-      coinConfig.min = price
-    }
+app.use(logging(logger))
+app.use(error)
+app.use(requestId)
+app.use(responseTime)
+app.use(transmittedHeaders('crypto-manager'))
+app.use(historyApiFallback({ whiteList: ['/api'] }))
+app.use(router.routes())
+app.use(router.allowedMethods())
 
-    if (price < thresholdMax) {
-      return `${cryptocurrencySymbol} - VENTE - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${coinConfig.max} - MIN: ${coinConfig.min}`
-    }
-    if (price > thresholdMin) {
-      return `${cryptocurrencySymbol} - ACHAT - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${coinConfig.max} - MIN: ${coinConfig.min}`
-    }
+app.use(serve(path.join(__dirname, '../public')));
+// app.use(serve(path.join(__dirname, '../www')))
+
+router.routes().router.stack.forEach((route) => {
+  if (route.methods.length) {
+    logger.info(route.methods, route.path);
   }
+});
+
+function connect() {
+  return mongoose.connect(config.database.url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
 }
 
-const batch = () => {
-  cryptoService.getCrypto()
-    .then((data) => {
-
-      const alertMessages = Object.keys(data).map((cryptocurrencySymbol) => handleCoin(cryptocurrencySymbol, data[cryptocurrencySymbol].EUR)).filter((i) => i)
-
-      log.info(alertMessages.join('\n'))
-      emailService.sendMail(alertMessages.join('\n'))
-    })
+function close(cb) {
+  mongoose.models = {}
+  mongoose.modelSchemas = {}
+  return mongoose.connection.close(cb)
 }
 
-batch()
-
-setInterval(batch, config.batchIntervalSeconds * 1000)
+module.exports = { app, connect, close }

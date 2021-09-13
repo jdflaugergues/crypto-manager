@@ -1,6 +1,9 @@
+mountPoint: /api
+port: 5000
 log:
   name: crypto-manager
   level: debug
-batchIntervalSeconds: 30
+cronIntervalSeconds: 5
 crypto:
   threshold: 0.10
+paginationPerPage: 100

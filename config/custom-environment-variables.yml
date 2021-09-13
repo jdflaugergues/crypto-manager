@@ -1,1 +1,3 @@
 appPasswordGmail: APP_PASSWORD_GMAIL
+database:
+  url: MONGODB_URI

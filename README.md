@@ -2,6 +2,11 @@
 
 Application d'alerte sur les cours des cryptomonnaies pour savoir quand vendre et quand acheter
 
+## Base de données
+- Lancer le service MongoDB `sudo systemctl start mongod`
+- L'URI de la base se trouve dans le fichier de conf `./config/development.yaml`
+- L'interface de la base est accessible via MongoDB Compass
+
 ## Service d'envoi d'email
 Le service utilise le module *Nodemailer* et passe par google.
 Pour définir la clé : 
