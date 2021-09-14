@@ -49,11 +49,10 @@
 
 <script>
   import { COINS_GET, COINS_UPDATE } from '../store/action-types'
-  import Coin from '../components/Coin'
 
   export default {
     name: 'CryptoCoinPage',
-    components: {Coin},
+    components: {},
     data: () => ({
       min: 0,
       max: 0,
