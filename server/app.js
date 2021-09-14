@@ -24,8 +24,7 @@ app.use(historyApiFallback({ whiteList: ['/api'] }))
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-app.use(serve(path.join(__dirname, '../public')));
-// app.use(serve(path.join(__dirname, '../www')))
+app.use(serve(path.join(__dirname, '../www')))
 
 router.routes().router.stack.forEach((route) => {
   if (route.methods.length) {
