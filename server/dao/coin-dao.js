@@ -15,6 +15,15 @@ const CoinDao = {
     }
   },
 
+  async getCoinById (coinId) {
+    try {
+      return await Coin.findOne({_id: coinId})
+    } catch (e) {
+      log.error(`Error during find coin with id ${coinId}`, e)
+      return e
+    }
+  },
+
   async getCoin (symbol) {
     try {
       const coin = await Coin.findOne({symbol})

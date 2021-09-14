@@ -7,7 +7,7 @@ const { Schema } = mongoose
 const purchaseSaleSchema = new Schema(
   {
     date: {
-      type: String,
+      type: Date,
       required: true,
     },
     price: {

@@ -1,5 +1,5 @@
 import CryptoCoinsPage from '../../pages/CryptoCoinsPage'
-// import CryptoTest from '../../pages/CryptoTest'
+import CryptoCoinPage from '../../pages/CryptoCoinPage'
 
 const routes = [
   {
@@ -8,10 +8,16 @@ const routes = [
     component: CryptoCoinsPage
   },
   {
+    path: '/coin/:coinid',
+    name: 'coin',
+    component: CryptoCoinPage
+  },
+
+  {
     path: '/*',
     redirect: { name: 'coins' }
   }
 ]
 
 export default routes
-dispatchRequest.js:82 Uncaught Error: Module build failed: Error: ENOENT: no such file or directory, open 'node_modules/@vue/cli-service/node_modules/webpack-dev-server/client/index.js'
+

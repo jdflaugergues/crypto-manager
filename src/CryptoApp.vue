@@ -1,7 +1,6 @@
 <template>
   <div class="container-fluid g-0">
     <header>
-      Header
     </header>
     <main>
       <router-view />
@@ -24,4 +23,4 @@ export default {
 }
 </script>
 
-<!--<style lang="scss" src="./assets/scss/main.scss"></style>-->
+<style lang="scss" src="./assets/scss/main.scss"></style>

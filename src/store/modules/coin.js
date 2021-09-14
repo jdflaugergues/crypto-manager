@@ -1,5 +1,5 @@
 import coinService from '../../services/coin.service'
-import { COINS_GET } from '../action-types'
+import { COINS_GET, COINS_UPDATE } from '../action-types'
 import { SET_COINS } from '../mutation-types'
 
 export const initialState = {
@@ -13,8 +13,15 @@ export const mutations = {
 }
 export const actions = {
   [COINS_GET](context) {
-    coinService.getCoins().then(({data}) => {
+    return coinService.getCoins().then(({data}) => {
       context.commit(SET_COINS, { coins: data })
+      return data
+    })
+  },
+  [COINS_UPDATE](context, {coin}) {
+    return coinService.updateCoin(coin).then(({data}) => {
+      // context.commit(SET_COINS, { coins: data })
+      return data
     })
   }
 }
