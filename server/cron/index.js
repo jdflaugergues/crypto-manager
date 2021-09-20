@@ -28,7 +28,7 @@ const handleCryptocurrency = (cryptocurrencySymbol, price, cryptocurrencyFromDb)
 
       if (cryptocurrencyFromDb) {
         cryptocurrencyFromDb.rate = price
-
+        log.info(cryptocurrency.min, price, cryptocurrency.max)
         if (cryptocurrency.max < price) {
           cryptocurrencyToUpdate.max = price
           cryptocurrencyFromDb.max = price
@@ -46,7 +46,17 @@ const handleCryptocurrency = (cryptocurrencySymbol, price, cryptocurrencyFromDb)
       const thresholdMin = (cryptocurrencyConfig.min + (cryptocurrencyConfig.max - cryptocurrencyConfig.min) * config.cryptoService.threshold).toFixed(4)
       const action = (cryptocurrencyConfig.rate < thresholdMax) ? 'VENTE' : (cryptocurrencyConfig.rate > thresholdMin) ? 'ACHAT' : ''
 
-      return {cryptocurrencySymbol, thresholdMin, thresholdMax, max: cryptocurrencyConfig.max, min: cryptocurrencyConfig.min, price: cryptocurrencyConfig.rate, action, emailDisabled: cryptocurrencyConfig.emailDisabled }
+      return {
+        cryptocurrencySymbol,
+        thresholdMin,
+        thresholdMax,
+        max: cryptocurrencyConfig.max,
+        min: cryptocurrencyConfig.min,
+        price: cryptocurrencyConfig.rate,
+        action,
+        alertPurchaseEnabled: cryptocurrencyConfig.alertPurchaseEnabled,
+        alertSaleEnabled: cryptocurrencyConfig.alertSaleEnabled
+      }
     })
 }
 
@@ -79,28 +89,25 @@ const job = () => {
       Promise.all(getCryptocurrenciesInfos).then((cryptocurrenciesInfos) => {
 
         const alertMessages = cryptocurrenciesInfos.map((cryptocurrencyInfos) => {
-          const {cryptocurrencySymbol, thresholdMin, thresholdMax, max, min, action, alertPurchaseEnabled, alertSaleEnabled} = cryptocurrencyInfos
+          const {cryptocurrencySymbol, thresholdMin, thresholdMax, price, max, min, action, alertPurchaseEnabled, alertSaleEnabled} = cryptocurrencyInfos
 
           if (action === 'VENTE' && alertSaleEnabled) {
             alertSaleToDisabled.push(cryptocurrencySymbol)
-            return `${cryptocurrencySymbol} - ${action} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
+            return `${cryptocurrencySymbol} - ${action} - Prix: ${price} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
           }
           if (action === 'ACHAT' && alertPurchaseEnabled) {
             alertPurchaseToDisabled.push(cryptocurrencySymbol)
-            return `${cryptocurrencySymbol} - ${action} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
+            return `${cryptocurrencySymbol} - ${action} - Prix: ${price} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
           }
         })
           .filter((i) => i)
 
-        log.info(alertMessages.join('\n'))
-        log.info('alertMessages.length', alertMessages.length)
-        log.info('alertSaleToDisabled', alertSaleToDisabled.join('\n'))
-        log.info('alertPurchaseToDisabled', alertPurchaseToDisabled.join('\n'))
-        CryptocurrencyDao.updateCoins(alertSaleToDisabled, {alertSaleEnabled: false})
-        CryptocurrencyDao.updateCoins(alertPurchaseToDisabled, {alertPurchaseEnabled: false})
+        log.info('Email Sent : ' + alertMessages.join('\n'))
+        if (config.emailService.active && alertMessages.length) {
 
-        if (alertMessages.length) {
           emailService.sendMail(alertMessages.join('\n'))
+          CryptocurrencyDao.updateCoins(alertSaleToDisabled, {alertSaleEnabled: false})
+          CryptocurrencyDao.updateCoins(alertPurchaseToDisabled, {alertPurchaseEnabled: false})
         }
       })
     })

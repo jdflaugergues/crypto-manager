@@ -8,3 +8,4 @@ cryptoService:
   cronIntervalSeconds: 30
 emailService:
   user: jdflaugergues@gmail.com
+  active: true

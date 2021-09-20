@@ -18,9 +18,11 @@ connect()
           cryptoDb.min = crypto.min
           cryptoDb.max = crypto.max
           cryptoDb.rate = crypto.rate
+          cryptoDb.alertPurchaseEnabled = crypto.alertPurchaseEnabled
+          cryptoDb.alertSaleEnabled = crypto.alertSaleEnabled
           cryptoDb.transactions = crypto.transactions
-          cryptoDb.save().then(() => {
-            log.info(`Crypto currency ${crypto.name} (${crypto.symbol}) updated`)
+          cryptoDb.save().then((c) => {
+            log.info(`Crypto currency ${crypto.name} (${crypto.symbol}) ${c.alertPurchaseEnabled} ${c.alertSaleEnabled} updated`)
           })
         } else {
           CryptocurrencyDao.createCoin(crypto).then(() => {
