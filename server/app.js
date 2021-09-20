@@ -28,21 +28,9 @@ app.use(serve(path.join(__dirname, '../www')))
 
 router.routes().router.stack.forEach((route) => {
   if (route.methods.length) {
-    logger.info(route.methods, route.path);
+    logger.info(route.methods, route.path)
   }
-});
+})
 
-function connect() {
-  return mongoose.connect(config.database.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-}
 
-function close(cb) {
-  mongoose.models = {}
-  mongoose.modelSchemas = {}
-  return mongoose.connection.close(cb)
-}
-
-module.exports = { app, connect, close }
+module.exports = app

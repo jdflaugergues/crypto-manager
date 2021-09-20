@@ -1,3 +1,6 @@
-appPasswordGmail: APP_PASSWORD_GMAIL
+emailService:
+  pass: APP_PASSWORD_GMAIL
+cryptoService:
+  cryptoCompareApiKey: CRYPTO_COMPARE_API_KEY
 database:
   url: MONGODB_URI

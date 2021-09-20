@@ -1,7 +1,7 @@
 <template>
   <div class="card m-2 clickable" @click="onClick">
     <div class="card-body d-flex align-items-center justify-content-between">
-      <div>{{coin.symbol}}</div>
+      <div>{{coin.name}} ({{coin.symbol}})</div>
       <div>
         <div>Min: {{coin.min}}</div>
         <div>Taux: {{coin.rate}}</div>
@@ -24,10 +24,10 @@ export default {
   },
   computed: {
     totalPurchases() {
-      return this.coin.purchases.reduce((acc, purchase) => acc + purchase.price, 0)
+      return 0 // this.coin.purchases.reduce((acc, purchase) => acc + purchase.price, 0)
     },
     totalSales() {
-      return this.coin.sales.reduce((acc, sale) => acc + sale.price, 0)
+      return 0 // this.coin.sales.reduce((acc, sale) => acc + sale.price, 0)
     },
 
   },

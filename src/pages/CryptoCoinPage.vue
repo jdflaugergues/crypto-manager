@@ -1,46 +1,79 @@
 <template>
-  <div class="m-2">
-    <div>{{coin}}</div>
+  <div class="m-2" v-if="coin">
 
     <div class="form-group row mb-2">
-      <label class="col-sm-2 col-form-label">Min</label>
-      <div class="col-sm-10">
+      <label class="col-2 col-form-label">Taux courant</label>
+      <div class="col-5">
+       {{coin.rate}}
+      </div>
+    </div>
+
+    <div class="form-group row mb-2">
+      <label class="col-2 col-form-label">Min</label>
+      <div class="col-5">
         <input type="text" class="form-control" v-model="min" placeholder="Min">
       </div>
+      <div class="col-5">
+        <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
+      </div>
     </div>
 
     <div class="form-group row mb-2">
-      <label class="col-sm-2 col-form-label">Max</label>
-      <div class="col-sm-10">
+      <label class="col-2 col-form-label">Max</label>
+      <div class="col-5">
         <input type="text" class="form-control" v-model="max" placeholder="Max">
       </div>
+      <div class="col-5">
+        <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
+      </div>
     </div>
 
-    <div>
-      <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
+    <div class="form-group row mb-2">
+      <label class="col-2 col-form-label">Alerte Achat</label>
+      <div class="col-10">
+        <button type="button" class="btn mb-2" :class="classeButton(coin.alertSaleEnabled)" @click="toggleAlertSaleEnabled">{{ !coin.alertSaleEnabled ? 'Activer' : 'Désactiver'}}</button>
+      </div>
+    </div>
+    <div class="form-group row mb-2">
+      <label class="col-2 col-form-label">Alerte Vente</label>
+      <div class="col-10">
+        <button type="button" class="btn mb-2" :class="classeButton(coin.alertPurchaseEnabled)" @click="toggleAlertPurchaseEnabled">{{ !coin.alertPurchaseEnabled ? 'Activer' : 'Désactiver'}}</button>
+      </div>
     </div>
 
     <div class="form-row align-items-center row">
       <div class="col-4">
-        <input id="purchasesPrice" type="text" class="form-control" v-model="purchasesPrice" placeholder="Prix en euro">
+        <input id="purchaseSpent" type="text" class="form-control" v-model="purchaseSpent" placeholder="Dépensé en euro">
       </div>
       <div class="col-4">
-        <input id="purchasesRate" type="text" class="form-control" v-model="purchasesRate" :placeholder="'Taux en ' + coin.symbol">
+        <input id="purchasePrice" type="text" class="form-control" v-model="purchasePrice" :placeholder="'Prix d\'1 ' + coin.symbol + ' en €'">
       </div>
       <div class="col-4">
-        <button type="submit" class="btn btn-primary mb-2" @click="purchaseCoin">Acheter</button>
+        <button type="submit" class="btn btn-primary mb-2" @click="addTransaction(transactionTypeEnum.PURCHASE, purchaseSpent, purchasePrice)">Acheter</button>
       </div>
     </div>
 
     <div class="form-row align-items-center row">
       <div class="col-4">
-        <input id="salesPrice" type="text" class="form-control" v-model="salesPrice" placeholder="Prix en euro">
+        <input id="saleSpent" type="text" class="form-control" v-model="saleSpent" placeholder="Acheté en euro">
       </div>
       <div class="col-4">
-        <input id="salesRate" type="text" class="form-control" v-model="salesRate" :placeholder="'Taux en ' + coin.symbol">
+        <input id="salePrice" type="text" class="form-control" v-model="salePrice" :placeholder="'Prix d\'1 ' + coin.symbol + ' en €'">
       </div>
       <div class="col-4">
-        <button type="submit" class="btn btn-primary mb-2" @click="saleCoin">Vendre</button>
+        <button type="submit" class="btn btn-primary mb-2" @click="addTransaction(transactionTypeEnum.SALE, saleSpent, salePrice)">Vendre</button>
+      </div>
+    </div>
+
+    <div class="mt-3"><b>Transactions</b></div>
+    <div class="card m-2" v-for="transaction in coin.transactions" :key="transaction._id">
+      <div class="card-body d-flex justify-content-between row">
+        <div class="d-flex justify-content-between">
+          <div>{{getTitleTransaction(transaction)}}</div>
+          <div>{{getPurchasedLabel(transaction)}}</div>
+        </div>
+        <div class="d-flex">{{getSpentLabel(transaction)}}</div>
+        <div class="d-flex">{{new Date(transaction.date).toLocaleString()}}</div>
       </div>
     </div>
 
@@ -49,17 +82,19 @@
 
 <script>
   import { COINS_GET, COINS_UPDATE } from '../store/action-types'
+  import TransactionTypeEnum from '../enums/TransactionType'
 
   export default {
     name: 'CryptoCoinPage',
     components: {},
     data: () => ({
+      transactionTypeEnum: TransactionTypeEnum,
       min: 0,
       max: 0,
-      purchasesPrice: null,
-      purchasesRate: null,
-      salesPrice: null,
-      salesRate: null,
+      purchaseSpent: null,
+      purchasePrice: null,
+      saleSpent: null,
+      salePrice: null,
     }),
     mounted() {
       this.$store.dispatch(`coin/${COINS_GET}`).then((coins) => {
@@ -75,24 +110,34 @@
       }
     },
     methods: {
-      purchaseCoin() {
-        const coin = {
-          id: this.coin._id,
-          purchase: {
-            price: this.purchasesPrice,
-            rate: this.purchasesRate
-          }
-        }
+      getTitleTransaction(transaction) {
+        const action = transaction.type === TransactionTypeEnum.PURCHASE ? 'Achat' : 'Vente'
 
-        this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
+        return `${action} de ${this.coin.symbol} avec ${transaction.currency}`
       },
-      saleCoin() {
+      getPurchasedLabel(transaction) {
+        const signe = transaction.type === TransactionTypeEnum.PURCHASE ? '+' : '-'
+        const purchased = (transaction.spent - (transaction.spent * transaction.exchangeCosts / 100)) / transaction.price
+        return `${signe} ${purchased.toFixed(6)} ${this.coin.symbol}`
+      },
+      getSpentLabel(transaction) {
+        const signe = transaction.type === TransactionTypeEnum.PURCHASE ? '-' : '+'
+        const currency = transaction.currency === 'EUR' ? '€' : transaction.currency
+        return `${signe} ${transaction.spent} ${currency}`
+      },
+      classeButton(value) {
+        return value ? 'btn-success' : 'btn-danger'
+      },
+      addTransaction(type, spent, price) {
         const coin = {
           id: this.coin._id,
-          sale: {
-            price: this.salesPrice,
-            rate: this.salesRate
-          }
+          transaction: {
+            type,
+            spent,
+            price
+          },
+          alertSaleEnabled: type === TransactionTypeEnum.PURCHASE,
+          alertPurchaseEnabled: type === TransactionTypeEnum.SALE
         }
 
         this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
@@ -104,6 +149,24 @@
           max: this.max
         }
 
+        this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
+      },
+      toggleAlertSaleEnabled() {
+        const coin = {
+          id: this.coin._id,
+          alertSaleEnabled: !this.coin.alertSaleEnabled
+        }
+        console.log('this.coin.alertSaleEnabled', this.coin.alertSaleEnabled)
+        console.log('coin to update', coin)
+        this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
+      },
+      toggleAlertPurchaseEnabled() {
+        const coin = {
+          id: this.coin._id,
+          alertPurchaseEnabled: !this.coin.alertPurchaseEnabled
+        }
+        console.log('this.coin.alertPurchaseEnabled', this.coin.alertPurchaseEnabled)
+        console.log('coin to update', coin)
         this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
       }
     }

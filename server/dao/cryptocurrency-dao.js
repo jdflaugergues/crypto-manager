@@ -5,7 +5,7 @@ const { Coin } = require('../models')
 
 const log = bunyan.createLogger(config.log)
 
-const CoinDao = {
+const CryptocurrencyDao = {
   async getCoins () {
     try {
       return await Coin.find()
@@ -23,6 +23,17 @@ const CoinDao = {
       return e
     }
   },
+
+  async getCoinBySymbol (symbol) {
+    try {
+      return await Coin.findOne({symbol})
+    } catch (e) {
+      log.error(`Error during find coin with symbol ${symbol}`, e)
+      return e
+    }
+  },
+
+
 
   async getCoin (symbol) {
     try {
@@ -49,15 +60,21 @@ const CoinDao = {
       const filter = { symbol }
       const update = coin
 
-      log.info('filter', filter)
-      log.info('update', update)
-
       return await Coin.findOneAndUpdate(filter, update, { new: true })
     } catch (e) {
       log.error(`Error during update coin ${coin}`, e)
       return e
     }
+  },
+
+  async updateCoins(symbols, update) {
+    try {
+      return await Coin.updateMany({symbol: {$in: symbols}}, update)
+    } catch (e) {
+      log.error(`Error during update coins ${symbols.join(', ')}`, e)
+      return e
+    }
   }
 }
 
-module.exports = CoinDao
+module.exports = CryptocurrencyDao

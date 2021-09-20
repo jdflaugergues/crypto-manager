@@ -7,5 +7,5 @@ module.exports = {
   },
   transpileDependencies: ['vuetify'],
   outputDir: './www',
-  publicPath: './'
+  publicPath: '/'
 }

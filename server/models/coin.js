@@ -1,24 +1,39 @@
 const mongoose = require('mongoose')
+const TransactionTypeEnum = require('../enums/TransactionType')
 
 mongoose.Promise = global.Promise
 
 const { Schema } = mongoose
 
-const purchaseSaleSchema = new Schema(
+const transactionSchema = new Schema(
   {
+    type: {
+      type: String,
+      enum: [TransactionTypeEnum.SALE, TransactionTypeEnum.PURCHASE],
+      required: true
+    },
     date: {
       type: Date,
       required: true,
     },
-    price: {
+    spent: { // Argent dépensé dans la devise
       type: Number,
       required: true,
     },
-    rate: {
+    price: { // Prix d'une unité de crypto-monnaie dans la devise utilisée
       type: Number,
       required: true,
+    },
+    // Frais de change
+    exchangeCosts: {
+      type: Number,
+      default: 1.5 // Revolut prend 1.5% en frais de change sur les crypto-monnaies
+    },
+    currency: {
+      type: String,
+      default: 'EUR' // Devise dans laquelle est effectuée la transactions
     }
-})
+  })
 
 const coinSchema = new Schema(
   {
@@ -39,11 +54,18 @@ const coinSchema = new Schema(
       required: true
     },
     rate: {
-      type: Number,
-      required: true
+      type: Number
     },
-    purchases: [purchaseSaleSchema],
-    sales: [purchaseSaleSchema]
+    emailDisabled: {
+      type: Boolean
+    },
+    alertPurchaseEnabled: {
+      type: Boolean
+    },
+    alertSaleEnabled: {
+      type: Boolean
+    },
+    transactions: [transactionSchema]
   },
   { versionKey: false, strict: 'throw', useNestedStrict: true, timestamps: true }
 );

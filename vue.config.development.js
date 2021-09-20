@@ -5,7 +5,7 @@ const path = require('path')
 
 module.exports = {
   outputDir: './www',
-  publicPath: './',
+  publicPath: '/',
   lintOnSave: false,
   productionSourceMap: true,
   devServer: {

@@ -3,7 +3,8 @@ port: 5000
 log:
   name: crypto-manager
   level: debug
-cronIntervalSeconds: 5
-crypto:
+cryptoService:
   threshold: 0.10
-paginationPerPage: 100
+  cronIntervalSeconds: 30
+emailService:
+  user: jdflaugergues@gmail.com

@@ -2,7 +2,8 @@ const config = require('config')
 const bunyan = require('bunyan')
 
 const cronManager = require('./cron')
-const {app, connect, close}  = require('./app')
+const {connect, close} = require('./database')
+const app  = require('./app')
 
 const log = bunyan.createLogger(config.log)
 const port = process.env.PORT || config.port
@@ -11,7 +12,7 @@ connect()
   .then(() => {
     log.info('MongoDB database connected')
     app.listen(port)
-    // cronManager.start()
+    cronManager.start()
     log.info('Server started on:', port)
   })
   .catch((err) => {

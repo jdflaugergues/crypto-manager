@@ -8,7 +8,7 @@ const routes = [
     component: CryptoCoinsPage
   },
   {
-    path: '/coin/:coinid',
+    path: '/coins/:coinid',
     name: 'coin',
     component: CryptoCoinPage
   },

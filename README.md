@@ -7,6 +7,11 @@ Application d'alerte sur les cours des cryptomonnaies pour savoir quand vendre e
 - L'URI de la base se trouve dans le fichier de conf `./config/development.yaml`
 - L'interface de la base est accessible via MongoDB Compass
 
+## Service de récupération de cryptomonnaie
+- **cryptocompare** : La version gratuite est limitée à 100'000 appels par mois soit 1 appel toutes les 30s.
+
+ 
+
 ## Service d'envoi d'email
 Le service utilise le module *Nodemailer* et passe par google.
 Pour définir la clé : 

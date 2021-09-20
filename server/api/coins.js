@@ -4,7 +4,7 @@ const cryptoRouter = require('koa-router')()
 const bodyParser = require('koa-body')
 
 const { errors } = require('../lib/errors');
-const CoinDao = require('../dao/coin-dao')
+const CryptocurrencyDao = require('../dao/cryptocurrency-dao')
 
 
 cryptoRouter
@@ -13,7 +13,7 @@ cryptoRouter
 
 async function updateCoin(ctx) {
   const date = Date.now()
-  const coin = await CoinDao.getCoinById(ctx.params.coinId)
+  const coin = await CryptocurrencyDao.getCoinById(ctx.params.coinId)
 
   ctx.assert(coin, 404, `No coin for id ${ctx.params.coinId}`, { code: errors.NOT_FOUND });
 
@@ -24,22 +24,16 @@ async function updateCoin(ctx) {
     coin.max = ctx.request.body.max
   }
 
-  if (ctx.request.body.sale) {
-    console.log('ctx.request.body.sale', ctx.request.body.sale)
-    coin.sales.push({...ctx.request.body.sale, date});
+  if (ctx.request.body.hasOwnProperty('alertSaleEnabled')) {
+    coin.alertSaleEnabled = ctx.request.body.alertSaleEnabled
   }
-  if (ctx.request.body.purchase) {
-    coin.purchases.push({...ctx.request.body.purchase, date});
+  if (ctx.request.body.hasOwnProperty('alertPurchaseEnabled')) {
+    coin.alertPurchaseEnabled = ctx.request.body.alertPurchaseEnabled
   }
 
-
-  // Object.keys(ctx.request.body).forEach((property) => {
-  //   coin[property] = ctx.request.body[property]
-  // })
-
-  ctx.state.logger.info('ctx.request', ctx.request)
-  ctx.state.logger.info('ctx.request.body', ctx.request.body)
-  ctx.state.logger.info('coin', coin)
+  if (ctx.request.body.transaction) {
+    coin.transactions.push({...ctx.request.body.transaction, date});
+  }
 
   await coin.save()
 
@@ -49,9 +43,7 @@ async function updateCoin(ctx) {
 
 
 async function getCoins(ctx) {
-  const coins = await CoinDao.getCoins()
-
-  ctx.state.logger.info('coins', coins)
+  const coins = await CryptocurrencyDao.getCoins()
 
   ctx.body = coins
   ctx.status = 200;

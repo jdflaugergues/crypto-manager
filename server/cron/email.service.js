@@ -7,8 +7,8 @@ const log = bunyan.createLogger(config.log)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'jdflaugergues@gmail.com',
-    pass: 'kkkavrvxzngenpnt'
+    user: config.emailService.user,
+    pass: config.emailService.pass
   }
 })
 
