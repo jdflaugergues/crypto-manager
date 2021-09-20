@@ -65,7 +65,6 @@ const job = () => {
     .then((cryptocurrencies) => {
       const getCryptocurrenciesInfos = Object.keys(cryptocurrencies)
         .map((cryptocurrencySymbol) => {
-          log.info(cryptocurrenciesFromDb.map((coin) => coin.symbol))
           const cryptocurrencyFromDb = cryptocurrenciesFromDb.find((coin) => coin.symbol === cryptocurrencySymbol)
 
           if(!cryptocurrencyFromDb) {
@@ -94,6 +93,7 @@ const job = () => {
           .filter((i) => i)
 
         log.info(alertMessages.join('\n'))
+        log.info('alertMessages.length', alertMessages.length)
         log.info('alertSaleToDisabled', alertSaleToDisabled.join('\n'))
         log.info('alertPurchaseToDisabled', alertPurchaseToDisabled.join('\n'))
         CryptocurrencyDao.updateCoins(alertSaleToDisabled, {alertSaleEnabled: false})
