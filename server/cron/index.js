@@ -99,7 +99,9 @@ const job = () => {
         CryptocurrencyDao.updateCoins(alertSaleToDisabled, {alertSaleEnabled: false})
         CryptocurrencyDao.updateCoins(alertPurchaseToDisabled, {alertPurchaseEnabled: false})
 
-        emailService.sendMail(alertMessages.join('\n'))
+        if (alertMessages.length) {
+          emailService.sendMail(alertMessages.join('\n'))
+        }
       })
     })
 }
