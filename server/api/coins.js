@@ -5,7 +5,7 @@ const bodyParser = require('koa-body')
 
 const { errors } = require('../lib/errors');
 const CryptocurrencyDao = require('../dao/cryptocurrency-dao')
-
+const TransactionTypeEnum = require('../enums/TransactionType')
 
 cryptoRouter
   .get('/', getCoins)
@@ -33,6 +33,13 @@ async function updateCoin(ctx) {
 
   if (ctx.request.body.transaction) {
     coin.transactions.push({...ctx.request.body.transaction, date});
+    if (ctx.request.body.transaction.type === TransactionTypeEnum.PURCHASE) {
+      coin.max = coin.rate
+    }
+    if (ctx.request.body.transaction.type === TransactionTypeEnum.SALE) {
+      coin.min = coin.rate
+    }
+
   }
 
   await coin.save()

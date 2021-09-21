@@ -5,6 +5,7 @@ const CronJobManager = require('./cron-job-manager')
 const cryptoService = require('./crypto.service')
 const emailService = require('./email.service')
 const CryptocurrencyDao = require('../dao/cryptocurrency-dao')
+const TransactionTypeEnum = require('../enums/TransactionType')
 
 const log = bunyan.createLogger(config.log)
 
@@ -28,7 +29,7 @@ const handleCryptocurrency = (cryptocurrencySymbol, price, cryptocurrencyFromDb)
 
       if (cryptocurrencyFromDb) {
         cryptocurrencyFromDb.rate = price
-        log.info(cryptocurrency.min, price, cryptocurrency.max)
+        // log.info(cryptocurrency.min, price, cryptocurrency.max)
         if (cryptocurrency.max < price) {
           cryptocurrencyToUpdate.max = price
           cryptocurrencyFromDb.max = price
@@ -42,11 +43,15 @@ const handleCryptocurrency = (cryptocurrencySymbol, price, cryptocurrencyFromDb)
       }
     })
     .then((cryptocurrencyConfig) => {
-      const thresholdMax = (cryptocurrencyConfig.max - (cryptocurrencyConfig.max - cryptocurrencyConfig.min) * config.cryptoService.threshold).toFixed(4)
-      const thresholdMin = (cryptocurrencyConfig.min + (cryptocurrencyConfig.max - cryptocurrencyConfig.min) * config.cryptoService.threshold).toFixed(4)
-      const action = (cryptocurrencyConfig.rate < thresholdMax) ? 'VENTE' : (cryptocurrencyConfig.rate > thresholdMin) ? 'ACHAT' : ''
+      // const thresholdMax = (cryptocurrencyConfig.max - (cryptocurrencyConfig.max - cryptocurrencyConfig.min) * config.cryptoService.threshold).toFixed(4)
+      // const thresholdMin = (cryptocurrencyConfig.min + (cryptocurrencyConfig.max - cryptocurrencyConfig.min) * config.cryptoService.threshold).toFixed(4)
+      const thresholdMax = (cryptocurrencyConfig.max - cryptocurrencyConfig.stage).toFixed(4)
+      const thresholdMin = (cryptocurrencyConfig.min + cryptocurrencyConfig.stage).toFixed(4)
+
+      const action = (cryptocurrencyConfig.rate < thresholdMax) ? TransactionTypeEnum.SALE : (cryptocurrencyConfig.rate > thresholdMin) ? TransactionTypeEnum.PURCHASE : ''
 
       return {
+        name: cryptocurrencyConfig.name,
         cryptocurrencySymbol,
         thresholdMin,
         thresholdMax,
@@ -68,11 +73,15 @@ const job = () => {
     .then((cryptocurrencies) => {
       cryptocurrenciesFromDb = cryptocurrencies
       cryptocurrencySymbols = cryptocurrencies.map((coin) => coin.symbol)
-      log.info('Cryptomonnaie prisent en compte issues de la base', cryptocurrencySymbols)
+      // log.info('Cryptomonnaie prisent en compte issues de la base', cryptocurrencySymbols)
+
+      // cryptocurrencySymbols = ['SUSHI']
 
       return cryptoService.getCryptocurrencies(cryptocurrencySymbols)
     })
+    // Liste des cryptomonnaie avec leurs valeur courante : {SOL: {EUR: 12354}, ...}
     .then((cryptocurrencies) => {
+
       const getCryptocurrenciesInfos = Object.keys(cryptocurrencies)
         .map((cryptocurrencySymbol) => {
           const cryptocurrencyFromDb = cryptocurrenciesFromDb.find((coin) => coin.symbol === cryptocurrencySymbol)
@@ -89,20 +98,20 @@ const job = () => {
       Promise.all(getCryptocurrenciesInfos).then((cryptocurrenciesInfos) => {
 
         const alertMessages = cryptocurrenciesInfos.map((cryptocurrencyInfos) => {
-          const {cryptocurrencySymbol, thresholdMin, thresholdMax, price, max, min, action, alertPurchaseEnabled, alertSaleEnabled} = cryptocurrencyInfos
+          const {name, cryptocurrencySymbol, thresholdMin, thresholdMax, price, max, min, action, alertPurchaseEnabled, alertSaleEnabled} = cryptocurrencyInfos
 
-          if (action === 'VENTE' && alertSaleEnabled) {
+          if (action === TransactionTypeEnum.SALE && alertSaleEnabled) {
             alertSaleToDisabled.push(cryptocurrencySymbol)
-            return `${cryptocurrencySymbol} - ${action} - Prix: ${price} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
+            return `${name} (${cryptocurrencySymbol}) - ${action} - Prix: ${price} - MAX : ${max} - SEUIL MAX: ${thresholdMax} - MIN: ${min} - SEUIL MIN: ${thresholdMin}`
           }
-          if (action === 'ACHAT' && alertPurchaseEnabled) {
+          if (action === TransactionTypeEnum.PURCHASE && alertPurchaseEnabled) {
             alertPurchaseToDisabled.push(cryptocurrencySymbol)
-            return `${cryptocurrencySymbol} - ${action} - Prix: ${price} - SEUIL MIN: ${thresholdMin} - SEUIL MAX: ${thresholdMax} - MAX : ${max} - MIN: ${min}`
+            return `${name} (${cryptocurrencySymbol}) - ${action} - Prix: ${price} - MAX : ${max} - SEUIL MAX: ${thresholdMax} - MIN: ${min} - SEUIL MIN: ${thresholdMin}`
           }
         })
           .filter((i) => i)
 
-        log.info('Email Sent : ' + alertMessages.join('\n'))
+        log.info('Email Sent : ' + alertMessages.length + ' ' + alertMessages.join('\n'))
         if (config.emailService.active && alertMessages.length) {
 
           emailService.sendMail(alertMessages.join('\n'))

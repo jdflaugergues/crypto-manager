@@ -53,11 +53,12 @@ const coinSchema = new Schema(
       type: Number,
       required: true
     },
+    stage: {
+      type: Number,
+      required: true
+    },
     rate: {
       type: Number
-    },
-    emailDisabled: {
-      type: Boolean
     },
     alertPurchaseEnabled: {
       type: Boolean

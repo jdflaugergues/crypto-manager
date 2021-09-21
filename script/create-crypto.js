@@ -17,10 +17,11 @@ connect()
           cryptoDb.name = crypto.name
           cryptoDb.min = crypto.min
           cryptoDb.max = crypto.max
-          cryptoDb.rate = crypto.rate
+          cryptoDb.stage = ((crypto.max - crypto.min) * 0.10).toFixed(4)
+          // cryptoDb.rate = crypto.rate
           cryptoDb.alertPurchaseEnabled = crypto.alertPurchaseEnabled
           cryptoDb.alertSaleEnabled = crypto.alertSaleEnabled
-          cryptoDb.transactions = crypto.transactions
+          // cryptoDb.transactions = crypto.transactions
           cryptoDb.save().then((c) => {
             log.info(`Crypto currency ${crypto.name} (${crypto.symbol}) ${c.alertPurchaseEnabled} ${c.alertSaleEnabled} updated`)
           })

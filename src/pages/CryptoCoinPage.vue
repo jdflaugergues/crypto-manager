@@ -31,13 +31,13 @@
     <div class="form-group row mb-2">
       <label class="col-2 col-form-label">Alerte Achat</label>
       <div class="col-10">
-        <button type="button" class="btn mb-2" :class="classeButton(coin.alertSaleEnabled)" @click="toggleAlertSaleEnabled">{{ !coin.alertSaleEnabled ? 'Activer' : 'Désactiver'}}</button>
+        <button type="button" class="btn mb-2" :class="classeButton(coin.alertPurchaseEnabled)" @click="toggleAlertPurchaseEnabled">{{ !coin.alertPurchaseEnabled ? 'Activer' : 'Désactiver'}}</button>
       </div>
     </div>
     <div class="form-group row mb-2">
       <label class="col-2 col-form-label">Alerte Vente</label>
       <div class="col-10">
-        <button type="button" class="btn mb-2" :class="classeButton(coin.alertPurchaseEnabled)" @click="toggleAlertPurchaseEnabled">{{ !coin.alertPurchaseEnabled ? 'Activer' : 'Désactiver'}}</button>
+        <button type="button" class="btn mb-2" :class="classeButton(coin.alertSaleEnabled)" @click="toggleAlertSaleEnabled">{{ !coin.alertSaleEnabled ? 'Activer' : 'Désactiver'}}</button>
       </div>
     </div>
 
