@@ -24,7 +24,7 @@ async function updateCoin(ctx) {
     coin.max = ctx.request.body.max
   }
   if (ctx.request.body.stage) {
-    coin.max = ctx.request.body.stage
+    coin.stage = ctx.request.body.stage
   }
 
   if (ctx.request.body.hasOwnProperty('alertSaleEnabled')) {
