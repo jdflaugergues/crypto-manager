@@ -29,6 +29,17 @@
     </div>
 
     <div class="form-group row mb-2">
+      <label class="col-2 col-form-label">Stage</label>
+      <div class="col-5">
+        <input type="text" class="form-control" v-model="stage" placeholder="Stage">
+      </div>
+      <div class="col-5">
+        <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
+      </div>
+    </div>
+
+
+    <div class="form-group row mb-2">
       <label class="col-2 col-form-label">Alerte Achat</label>
       <div class="col-10">
         <button type="button" class="btn mb-2" :class="classeButton(coin.alertPurchaseEnabled)" @click="toggleAlertPurchaseEnabled">{{ !coin.alertPurchaseEnabled ? 'Activer' : 'Désactiver'}}</button>
@@ -91,6 +102,7 @@
       transactionTypeEnum: TransactionTypeEnum,
       min: 0,
       max: 0,
+      stage: 0,
       purchaseSpent: null,
       purchasePrice: null,
       saleSpent: null,
@@ -102,6 +114,7 @@
 
         this.min = coin.min
         this.max = coin.max
+        this.stage = coin.stage
       })
     },
     computed: {
@@ -146,7 +159,8 @@
         const coin = {
           id: this.coin._id,
           min: this.min,
-          max: this.max
+          max: this.max,
+          stage: this.stage,
         }
 
         this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
