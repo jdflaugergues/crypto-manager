@@ -35,9 +35,13 @@ async function updateCoin(ctx) {
     coin.transactions.push({...ctx.request.body.transaction, date});
     if (ctx.request.body.transaction.type === TransactionTypeEnum.PURCHASE) {
       coin.max = coin.rate
+      coin.alertPurchaseEnabled = false
+      coin.alertSaleEnabled = true
     }
     if (ctx.request.body.transaction.type === TransactionTypeEnum.SALE) {
       coin.min = coin.rate
+      coin.alertPurchaseEnabled = true
+      coin.alertSaleEnabled = false
     }
 
   }

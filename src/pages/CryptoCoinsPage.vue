@@ -1,7 +1,12 @@
 <template>
   <div>
-    <button type="button" class="btn btn-primary m-2" @click="trierParDepense">Tri par dépensé</button>
-    <button type="button" class="btn btn-primary m-2" @click="trierParNom">Tri par nom</button>
+    <div class="d-flex justify-content-between mx-2" >
+      <div class="">
+        <input type="text" class="form-control" placeholder="filtre" v-model="filtre">
+      </div>
+      <button type="button" class="btn btn-primary" @click="trierParDepense">Tri par dépensé</button>
+      <button type="button" class="btn btn-primary" @click="trierParNom">Tri par nom</button>
+    </div>
     <coin v-for="coin in sortedCoins" :coin="coin" :key="coin.symbol"></coin>
   </div>
 </template>
@@ -19,35 +24,52 @@
     data: () => ({
       min: 0,
       max: 0,
-      sortedCoins: []
+      filtre: '',
+      triParNom: false,
+      triParDepense: true
     }),
     mounted() {
-      this.$store.dispatch(`coin/${COINS_GET}`).then((coins) => {
-        this.sortedCoins = coins
-      })
+      this.$store.dispatch(`coin/${COINS_GET}`)
     },
     computed: {
+      sortedCoins() {
+        const sortedCoins = this.coins.filter((coin) => {
+          if (!this.filtre) {
+            return true
+          }
+          return coin.name.toLowerCase().includes(this.filtre.toLowerCase())
+        })
+        if (this.triParNom) {
+          return _.sortBy(sortedCoins, 'name')
+        }
+        if (this.trierParDepense) {
+          return _.orderBy(sortedCoins, [(coin) => {
+            return +(coin.transactions.reduce((acc, transaction) => {
+              if (transaction.type === TransactionTypeEnum.PURCHASE) {
+                acc = acc + (transaction.spent)
+              }
+              if (transaction.type === TransactionTypeEnum.SALE) {
+                acc = acc - (transaction.spent)
+              }
+
+              return acc
+            }, 0)).toFixed(2)
+          }], ['desc'])
+        }
+        return sortedCoins
+      },
       coins() {
         return this.$store.state.coin.coins
       }
     },
     methods: {
       trierParNom() {
-        this.sortedCoins = _.sortBy(this.coins, 'name')
+        this.triParNom = true
+        this.triParDepense = false
       },
       trierParDepense() {
-        this.sortedCoins = _.orderBy(this.coins, [(coin) => {
-          return (coin.transactions.reduce((acc, transaction) => {
-            if (transaction.type === TransactionTypeEnum.PURCHASE) {
-              acc = acc + (transaction.spent)
-            }
-            if (transaction.type === TransactionTypeEnum.SALE) {
-              acc = acc - (transaction.spent)
-            }
-
-            return acc
-          }, 0)).toFixed(2)
-        }], ['desc'])
+        this.triParNom = false
+        this.triParDepense = true
       }
     }
   }
