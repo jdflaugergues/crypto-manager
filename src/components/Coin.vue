@@ -54,7 +54,7 @@ export default {
       return (this.totalCoin * this.coin.rate).toFixed(2)
     },
     totalGain() {
-      return (this.totalValeur - this.totalDepense).toFixed(2)
+      return this.$store.getters['coin/getTotalGain'](this.coin.symbol)
     },
     totalDepense() {
       return (this.coin.transactions.reduce((acc, transaction) => {
@@ -67,8 +67,7 @@ export default {
 
         return acc
       }, 0)).toFixed(2)
-    },
-
+    }
   },
   methods: {
     imageLoadError(event) {
@@ -78,7 +77,7 @@ export default {
     onClick() {
       this.$router.push({
         name: 'coin',
-        params: { coinid: this.coin._id }
+        params: { coinid: this.coin.symbol }
       })
     }
   }

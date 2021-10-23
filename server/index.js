@@ -11,6 +11,7 @@ const port = process.env.PORT || config.port
 connect()
   .then(() => {
     log.info('MongoDB database connected')
+    log.info('Email service active :', config.emailService.active)
     app.listen(port)
     cronManager.start()
     log.info('Server started on:', port)

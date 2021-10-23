@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div>Total Gain : {{totalGain}} €</div>
     <div class="d-flex justify-content-between mx-2" >
       <div class="">
         <input type="text" class="form-control" placeholder="filtre" v-model="filtre">
@@ -32,6 +33,11 @@
       this.$store.dispatch(`coin/${COINS_GET}`)
     },
     computed: {
+      totalGain() {
+        return this.coins.reduce((acc, coin) => {
+          return acc + +this.$store.getters['coin/getTotalGain'](coin.symbol)
+        }, 0).toFixed(2)
+      },
       sortedCoins() {
         const sortedCoins = this.coins.filter((coin) => {
           if (!this.filtre) {

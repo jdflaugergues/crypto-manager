@@ -1,6 +1,9 @@
 <template>
   <div class="m-2" v-if="coin">
-
+    <div class="d-flex mb-2 align-items-center justify-content-center">
+      <img :src="'https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.0/svg/icon/' + coin.symbol.toLowerCase() + '.svg'" width="50" height="50" @error="imageLoadError"/>
+      <div class="m-3"><b>{{coin.name}}</b> ({{coin.symbol}})</div>
+    </div>
     <div class="form-group row mb-2">
       <label class="col-2 col-form-label">Taux courant</label>
       <div class="col-5">
@@ -14,7 +17,6 @@
         <input type="text" class="form-control" v-model="min" placeholder="Min">
       </div>
       <div class="col-5">
-        <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
       </div>
     </div>
 
@@ -34,27 +36,30 @@
         <input type="text" class="form-control" v-model="stage" placeholder="Stage">
       </div>
       <div class="col-5">
-        <button type="button" class="btn btn-primary mb-2" @click="updateCoin">Mettre à jour</button>
       </div>
     </div>
 
 
-    <div class="form-group row mb-2">
+    <div class="form-group row mb-2 align-items-center">
       <label class="col-2 col-form-label">Alerte Achat</label>
-      <div class="col-10">
+      <span class="col-1" v-if="coin.alertPurchaseEnabled">🔔</span>
+      <span class="col-1" v-else>🔕</span>
+      <div class="col-9">
         <button type="button" class="btn mb-2" :class="classeButton(coin.alertPurchaseEnabled)" @click="toggleAlertPurchaseEnabled">{{ !coin.alertPurchaseEnabled ? 'Activer' : 'Désactiver'}}</button>
       </div>
     </div>
-    <div class="form-group row mb-2">
+    <div class="form-group row mb-2 align-items-center">
       <label class="col-2 col-form-label">Alerte Vente</label>
-      <div class="col-10">
+      <span class="col-1" v-if="coin.alertSaleEnabled">🔔</span>
+      <span class="col-1" v-else>🔕</span>
+      <div class="col-9">
         <button type="button" class="btn mb-2" :class="classeButton(coin.alertSaleEnabled)" @click="toggleAlertSaleEnabled">{{ !coin.alertSaleEnabled ? 'Activer' : 'Désactiver'}}</button>
       </div>
     </div>
 
     <div class="form-row align-items-center row">
       <div class="col-4">
-        <input id="purchaseSpent" type="text" class="form-control" v-model="purchaseSpent" placeholder="Dépensé en euro">
+        <input id="purchaseSpent" type="text" class="form-control" v-model="purchaseSpent" placeholder="Acheter en euro">
       </div>
       <div class="col-4">
         <input id="purchasePrice" type="text" class="form-control" v-model="purchasePrice" :placeholder="'Prix d\'1 ' + coin.symbol + ' en €'">
@@ -65,8 +70,11 @@
     </div>
 
     <div class="form-row align-items-center row">
-      <div class="col-4">
-        <input id="saleSpent" type="text" class="form-control" v-model="saleSpent" placeholder="Acheté en euro">
+      <div class="col-2">
+        <input id="saleSpent" type="text" class="form-control" v-model="saleSpent" placeholder="Vendre en euro">
+      </div>
+      <div class="col-2">
+        <input id="saleSpentPercent" type="text" class="form-control" v-model="saleSpentPercent" placeholder="Pourcentage">
       </div>
       <div class="col-4">
         <input id="salePrice" type="text" class="form-control" v-model="salePrice" :placeholder="'Prix d\'1 ' + coin.symbol + ' en €'">
@@ -106,11 +114,12 @@
       purchaseSpent: null,
       purchasePrice: null,
       saleSpent: null,
+      saleSpentPercent: null,
       salePrice: null,
     }),
     mounted() {
       this.$store.dispatch(`coin/${COINS_GET}`).then((coins) => {
-        const coin = coins.find((coin) => coin._id === this.$route.params.coinid)
+        const coin = this.getCoin(coins, this.$route.params.coinid)
 
         this.min = coin.min
         this.max = coin.max
@@ -119,10 +128,21 @@
     },
     computed: {
       coin() {
-        return this.$store.state.coin.coins.find((coin) => coin._id === this.$route.params.coinid)
+        return this.getCoin(this.$store.state.coin.coins, this.$route.params.coinid)
       }
     },
     methods: {
+      getCoin(coins, coinId) {
+        const coin = coins.find((coin) => coin.symbol === coinId)
+        if (coin) {
+          return coin
+        }
+        return coins.find((coin) => coin._id === coinId)
+      },
+      imageLoadError(event) {
+        event.target.src =
+          "https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.0/svg/black/generic.svg";
+      },
       getTitleTransaction(transaction) {
         const action = transaction.type === TransactionTypeEnum.PURCHASE ? 'Achat' : 'Vente'
 
@@ -141,7 +161,11 @@
       classeButton(value) {
         return value ? 'btn-success' : 'btn-danger'
       },
-      addTransaction(type, spent, price) {
+      addTransaction(type, purchaseOrSaleSpent, price) {
+        const spent = (type === TransactionTypeEnum.SALE && this.saleSpentPercent)
+          ? +purchaseOrSaleSpent + +this.saleSpentPercent
+          : purchaseOrSaleSpent
+
         const coin = {
           id: this.coin._id,
           transaction: {
@@ -153,7 +177,11 @@
           alertPurchaseEnabled: type === TransactionTypeEnum.SALE
         }
 
-        this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {})
+        this.$store.dispatch(`coin/${COINS_UPDATE}`, {coin}).then(() => {
+          this.min = this.coin.rate
+          this.max = this.coin.rate
+          this.updateCoin()
+        })
       },
       updateCoin() {
         const coin = {
